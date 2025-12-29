@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gainde Installation Guide - ArgoCD GitOps Deployment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0a0e27;
+            --secondary: #1a1f3a;
+            --accent: #00d9ff;
+            --accent-warm: #ff6b9d;
+            --text: #e8eaed;
+            --text-dim: #a8b2c1;
+            --code-bg: #0d1117;
+            --success: #00ffa3;
+            --warning: #ffb700;
+        }
+
+        body {
+            font-family: 'Libre Baskerville', serif;
+            background: var(--primary);
+            color: var(--text);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(0, 217, 255, 0.15) 0%, transparent 70%);
+            top: -400px;
+            right: -200px;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(255, 107, 157, 0.1) 0%, transparent 70%);
+            bottom: -300px;
+            left: -150px;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(50px, -50px) rotate(5deg); }
+            66% { transform: translate(-30px, 30px) rotate(-5deg); }
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 1;
+            max-width: 900px;
+            padding: 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-warm) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: var(--text-dim);
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 50px;
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .badge:hover {
+            background: rgba(0, 217, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section {
+            margin-bottom: 6rem;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .section:nth-child(even) {
+            animation-delay: 0.2s;
+        }
+
+        h2 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 2rem;
+            color: var(--accent);
+            position: relative;
+            display: inline-block;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 60%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+        }
+
+        h3 {
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            margin: 3rem 0 1.5rem;
+            color: var(--text);
+        }
+
+        h4 {
+            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+            margin: 2rem 0 1rem;
+            color: var(--text);
+        }
+
+        p {
+            margin-bottom: 1.5rem;
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        .step-card {
+            background: var(--secondary);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--accent) 0%, var(--accent-warm) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateX(8px);
+            border-color: rgba(0, 217, 255, 0.3);
+        }
+
+        .step-card:hover::before {
+            opacity: 1;
+        }
+
+        .step-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            color: rgba(0, 217, 255, 0.2);
+            margin-bottom: 1rem;
+            line-height: 1;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: attr(data-lang);
+            position: absolute;
+            top: 0.5rem;
+            right: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        pre {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 217, 255, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: var(--accent);
+            font-size: 0.9em;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: var(--text);
+        }
+
+        .keyword { color: #ff6b9d; }
+        .string { color: #00ffa3; }
+        .comment { color: #6a737d; font-style: italic; }
+        .function { color: #00d9ff; }
+
+        .info-box {
+            background: rgba(0, 217, 255, 0.05);
+            border-left: 4px solid var(--accent);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border-radius: 4px;
+        }
+
+        .info-box.warning {
+            background: rgba(255, 183, 0, 0.05);
+            border-left-color: var(--warning);
+        }
+
+        .info-box.success {
+            background: rgba(0, 255, 163, 0.05);
+            border-left-color: var(--success);
+        }
+
+        .info-box h4 {
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .info-box.warning h4 {
+            color: var(--warning);
+        }
+
+        .info-box.success h4 {
+            color: var(--success);
+        }
+
+        ul, ol {
+            margin: 1.5rem 0;
+            padding-left: 2rem;
+            color: var(--text-dim);
+        }
+
+        li {
+            margin-bottom: 0.75rem;
+            line-height: 1.8;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: var(--secondary);
+            border-radius: 8px;
+            padding: 2rem;
+            border: 1px solid rgba(0, 217, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 217, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 217, 255, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h4 {
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .feature-card p {
+            font-size: 1rem;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 4rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: var(--accent-warm);
+        }
+
+        @media (max-width: 768px) {
+            .step-card {
+                padding: 1.5rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero {
+                min-height: 80vh;
+            }
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        .scroll-indicator::after {
+            content: '↓';
+            font-size: 2rem;
+            color: var(--accent);
+            opacity: 0.6;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 1rem;
+            right: 4rem;
+            background: rgba(0, 217, 255, 0.1);
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            color: var(--accent);
+            padding: 0.4rem 1rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background: rgba(0, 217, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .copy-button:active {
+            transform: translateY(0);
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: var(--accent-warm);
+        }
+
+        .credential-box {
+            background: var(--code-bg);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .credential-box h4 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .credential-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(0, 217, 255, 0.05);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .credential-label {
+            color: var(--text-dim);
+            font-weight: 700;
+        }
+
+        .credential-value {
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <div class="grain-overlay"></div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Gainde Installation Guide</h1>
+            <p class="subtitle">Deploy Odoo-based Gainde application on Kubernetes using GitOps with ArgoCD</p>
+            <div>
+                <span class="badge">Kubernetes 1.19+</span>
+                <span class="badge">Helm 3+</span>
+                <span class="badge">ArgoCD</span>
+                <span class="badge">PostgreSQL</span>
+            </div>
+        </div>
+        <div class="scroll-indicator"></div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Introduction -->
+        <section class="section">
+            <h2>Overview</h2>
+            <p>This guide walks you through deploying the Gainde application using ArgoCD for GitOps-based continuous deployment. You've been provided with the necessary configuration file and GitLab credentials to complete this installation without needing direct repository access.</p>
+            
+            <div class="info-box">
+                <h4>📦 What You Need</h4>
+                <ul>
+                    <li><code>application.yaml</code> - ArgoCD application configuration (provided separately)</li>
+                    <li>GitLab username and password for container registry and repository access (provided by administrator)</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Note:</strong> The PostgreSQL configuration is included directly in this guide - no separate file needed.</p>
+            </div>
+
+            <div class="grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h4>GitOps Automation</h4>
+                    <p>ArgoCD continuously monitors the Git repository and automatically syncs changes to your cluster.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h4>Secure Access</h4>
+                    <p>Your provided credentials enable secure access to the container images without repository access.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h4>Self-Healing</h4>
+                    <p>Automatic drift detection and correction keeps your cluster in sync with desired state.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prerequisites -->
+        <section class="section">
+            <h2>Prerequisites</h2>
+            
+            <div class="info-box warning">
+                <h4>⚠️ Before You Begin</h4>
+                <p>Ensure you have the following tools and access configured before starting the installation process.</p>
+            </div>
+
+            <ul>
+                <li><strong>Kubernetes Cluster</strong> (v1.19 or higher) with kubectl configured</li>
+                <li><strong>Helm</strong> (v3 or higher) installed on your local machine</li>
+                <li><strong>kubectl</strong> configured to access your cluster with admin privileges</li>
+                <li><strong>Configuration File</strong>: <code>application.yaml</code></li>
+                <li><strong>GitLab Credentials</strong> provided by your administrator</li>
+            </ul>
+
+            <div class="credential-box">
+                <h4>🔑 Your Provided Credentials</h4>
+                <p style="color: var(--text-dim); margin-bottom: 1rem;">You should have received the following credentials from your administrator:</p>
+                <div class="credential-item">
+                    <span class="credential-label">GitLab Username:</span>
+                    <span class="credential-value">[provided-username]</span>
+                </div>
+                <div class="credential-item">
+                    <span class="credential-label">GitLab Password/Token:</span>
+                    <span class="credential-value">[provided-password]</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 1: Install ArgoCD -->
+        <section class="section">
+            <h2>Step 1: Install ArgoCD</h2>
+
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <h3>Create ArgoCD Namespace</h3>
+                <p>First, create a dedicated namespace for ArgoCD in your Kubernetes cluster.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>kubectl create namespace argocd</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <h3>Install ArgoCD</h3>
+                <p>Apply the ArgoCD installation manifest to deploy all required components.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <h3>Wait for ArgoCD to be Ready</h3>
+                <p>Monitor the deployment until all ArgoCD pods are running.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">04</div>
+                <h3>Access ArgoCD UI</h3>
+                <p>Expose the ArgoCD server to access the web interface.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Port forward to access locally</span>
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+<span class="comment"># Or expose via LoadBalancer (production)</span>
+kubectl patch svc argocd-server -n argocd -p <span class="string">'{"spec": {"type": "LoadBalancer"}}'</span></code></pre>
+                </div>
+
+                <div class="info-box">
+                    <h4>💡 Accessing ArgoCD UI</h4>
+                    <p>If using port-forward, open your browser to: <code>https://localhost:8080</code><br>
+                    (Accept the self-signed certificate warning)</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">05</div>
+                <h3>Get Initial Admin Password</h3>
+                <p>Retrieve the automatically generated admin password.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath=<span class="string">"{.data.password}"</span> | base64 -d; echo</code></pre>
+                </div>
+
+                <div class="info-box success">
+                    <h4>✅ Login Credentials</h4>
+                    <p><strong>Username:</strong> admin<br>
+                    <strong>Password:</strong> Use the output from the command above</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Configure GitLab Access in ArgoCD -->
+        <section class="section">
+            <h2>Step 2: Configure GitLab Repository Access</h2>
+
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <h3>Login to ArgoCD UI</h3>
+                <p>Access the ArgoCD web interface and login with the admin credentials.</p>
+                
+                <ol>
+                    <li>Open <code>https://localhost:8080</code> in your browser</li>
+                    <li>Login with username <code>admin</code> and the password from the previous step</li>
+                    <li>You'll see the ArgoCD dashboard</li>
+                </ol>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <h3>Add GitLab Repository to ArgoCD</h3>
+                <p>Configure ArgoCD to access the private GitLab repository using your provided credentials.</p>
+                
+                <div class="info-box">
+                    <h4>🎯 Repository Configuration</h4>
+                    <p>You'll need these details for the next steps:</p>
+                    <ul>
+                        <li><strong>Repository URL:</strong> <code>https://gitlab.com/kajande/gainde2k/odoo.git</code></li>
+                        <li><strong>Username:</strong> Your provided GitLab username</li>
+                        <li><strong>Password:</strong> Your provided GitLab password/token</li>
+                    </ul>
+                </div>
+
+                <h4>Option A: Using ArgoCD UI (Recommended)</h4>
+                <ol>
+                    <li>In ArgoCD UI, click on <strong>Settings</strong> (gear icon) → <strong>Repositories</strong></li>
+                    <li>Click <strong>Connect Repo</strong></li>
+                    <li>Select <strong>VIA HTTPS</strong> as connection method</li>
+                    <li>Fill in the following:
+                        <ul>
+                            <li><strong>Type:</strong> git</li>
+                            <li><strong>Project:</strong> default</li>
+                            <li><strong>Repository URL:</strong> <code>https://gitlab.com/kajande/gainde2k/odoo.git</code></li>
+                            <li><strong>Username:</strong> [your-provided-username]</li>
+                            <li><strong>Password:</strong> [your-provided-password]</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>Connect</strong></li>
+                    <li>Wait for "Connection Status: Successful" message</li>
+                </ol>
+
+                <h4>Option B: Using kubectl (CLI)</h4>
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Replace [USERNAME] and [PASSWORD] with your provided credentials</span>
+cat &lt;&lt;EOF | kubectl apply -f -
+<span class="keyword">apiVersion:</span> v1
+<span class="keyword">kind:</span> Secret
+<span class="keyword">metadata:</span>
+  <span class="keyword">name:</span> gitlab-repo-credentials
+  <span class="keyword">namespace:</span> argocd
+  <span class="keyword">labels:</span>
+    <span class="keyword">argocd.argoproj.io/secret-type:</span> repository
+<span class="keyword">stringData:</span>
+  <span class="keyword">type:</span> git
+  <span class="keyword">url:</span> https://gitlab.com/kajande/gainde2k/odoo.git
+  <span class="keyword">username:</span> [USERNAME]
+  <span class="keyword">password:</span> [PASSWORD]
+EOF</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <h3>Verify Repository Connection</h3>
+                <p>Confirm that ArgoCD can successfully connect to the GitLab repository.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check repository connection status</span>
+kubectl get secret -n argocd -l argocd.argoproj.io/secret-type=repository</code></pre>
+                </div>
+
+                <p>In the ArgoCD UI, go to <strong>Settings → Repositories</strong> and verify the connection status shows "Successful".</p>
+            </div>
+        </section>
+
+        <!-- Step 3: Prepare PostgreSQL -->
+        <section class="section">
+            <h2>Step 3: Deploy PostgreSQL Database</h2>
+
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <h3>Create Gainde Namespace</h3>
+                <p>Create a dedicated namespace for the Gainde application and its database.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>kubectl create namespace gainde</code></pre>
+                </div>
+
+                <div class="info-box warning">
+                    <h4>⚠️ Important: Namespace Requirement</h4>
+                    <p>The Gainde Helm chart <strong>must</strong> be deployed in the <code>gainde</code> namespace. The chart includes validation that will fail if deployed elsewhere.</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <h3>Add Bitnami Helm Repository</h3>
+                <p>Add the Bitnami repository to access the PostgreSQL chart.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <h3>Create PostgreSQL Configuration File</h3>
+                <p>Create a file named <code>postgres-values.yaml</code> with the following content:</p>
+                
+                <div class="code-block" data-lang="yaml">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="keyword">image:</span>
+  <span class="keyword">registry:</span> docker.io
+  <span class="keyword">repository:</span> bitnami/postgresql
+  <span class="keyword">tag:</span> <span class="string">"latest"</span>
+
+<span class="keyword">auth:</span>
+  <span class="keyword">postgresPassword:</span> <span class="string">"odoo"</span>
+  <span class="keyword">username:</span> <span class="string">"odoo"</span>
+  <span class="keyword">password:</span> <span class="string">"odoo"</span>
+  <span class="keyword">database:</span> <span class="string">"odoo"</span>
+
+<span class="keyword">primary:</span>
+  <span class="keyword">service:</span>
+    <span class="keyword">port:</span> 5432
+  <span class="keyword">persistence:</span>
+    <span class="keyword">enabled:</span> <span class="string">true</span>
+    <span class="keyword">storageClass:</span> local-path
+    <span class="keyword">size:</span> 8Gi
+  <span class="keyword">initdb:</span>
+    <span class="keyword">scripts:</span>
+      <span class="keyword">init-odoo.sql:</span> |
+        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+  <span class="keyword">extendedConfiguration:</span> |
+    max_connections = 200
+    shared_buffers = 256MB
+    effective_cache_size = 1GB
+    work_mem = 16MB
+    maintenance_work_mem = 64MB
+  <span class="keyword">resources:</span>
+    <span class="keyword">limits:</span>
+      <span class="keyword">cpu:</span> <span class="string">"1000m"</span>
+      <span class="keyword">memory:</span> <span class="string">"1Gi"</span>
+    <span class="keyword">requests:</span>
+      <span class="keyword">cpu:</span> <span class="string">"500m"</span>
+      <span class="keyword">memory:</span> <span class="string">"512Mi"</span>
+
+<span class="keyword">service:</span>
+  <span class="keyword">port:</span> 5432
+  <span class="keyword">type:</span> ClusterIP
+
+<span class="keyword">readReplicas:</span>
+  <span class="keyword">enabled:</span> <span class="string">false</span>
+
+<span class="keyword">volumePermissions:</span>
+  <span class="keyword">enabled:</span> <span class="string">true</span></code></pre>
+                </div>
+
+                <div class="info-box">
+                    <h4>📄 Configuration Explanation</h4>
+                    <p>This configuration sets up PostgreSQL with:</p>
+                    <ul>
+                        <li><strong>Database:</strong> odoo (username: odoo, password: odoo)</li>
+                        <li><strong>Storage:</strong> 8Gi persistent volume with local-path storage class</li>
+                        <li><strong>Extensions:</strong> uuid-ossp extension enabled for Odoo</li>
+                        <li><strong>Performance:</strong> Optimized for 200 max connections with appropriate buffer sizes</li>
+                        <li><strong>Resources:</strong> CPU and memory limits configured for stability</li>
+                    </ul>
+                </div>
+
+                <div class="info-box warning">
+                    <h4>🔐 Security Note</h4>
+                    <p>The default credentials (odoo/odoo) are suitable for testing. For production deployments, change these to strong, unique passwords.</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">04</div>
+                <h3>Install PostgreSQL</h3>
+                <p>Deploy PostgreSQL using the configuration file you just created.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Install PostgreSQL in the gainde namespace</span>
+helm install postgres bitnami/postgresql \
+  --namespace gainde \
+  --values postgres-values.yaml</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">05</div>
+                <h3>Verify PostgreSQL Deployment</h3>
+                <p>Ensure PostgreSQL is running before proceeding.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check pod status</span>
+kubectl get pods -n gainde -l app.kubernetes.io/name=postgresql
+
+<span class="comment"># Wait for pod to be ready</span>
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql -n gainde --timeout=300s
+
+<span class="comment"># Test database connection</span>
+kubectl exec -n gainde -it postgres-postgresql-0 -- psql -U odoo -d odoo -c <span class="string">"SELECT version();"</span></code></pre>
+                </div>
+
+                <div class="info-box success">
+                    <h4>✅ Expected Output</h4>
+                    <p>You should see the PostgreSQL version information, confirming the database is ready.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 4: Configure GitLab Registry Access -->
+        <section class="section">
+            <h2>Step 4: Configure Container Registry Access</h2>
+
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <h3>Create Docker Registry Secret</h3>
+                <p>Create a Kubernetes secret to allow pulling container images from the GitLab registry using your provided credentials.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Replace [USERNAME] and [PASSWORD] with your provided GitLab credentials</span>
+kubectl create secret docker-registry gitlab-registry-secret \
+  --docker-server=registry.gitlab.com \
+  --docker-username=<span class="string">[USERNAME]</span> \
+  --docker-password=<span class="string">[PASSWORD]</span> \
+  --namespace=gainde</code></pre>
+                </div>
+
+                <div class="info-box warning">
+                    <h4>🔐 Important Security Note</h4>
+                    <p>Use the same GitLab credentials that were provided to you. These enable Kubernetes to pull the Gainde container image from the private GitLab registry.</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <h3>Verify Secret Creation</h3>
+                <p>Confirm the secret was created successfully in the gainde namespace.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check if secret exists</span>
+kubectl get secret gitlab-registry-secret -n gainde
+
+<span class="comment"># View secret details (without exposing credentials)</span>
+kubectl describe secret gitlab-registry-secret -n gainde</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 5: Deploy with ArgoCD -->
+        <section class="section">
+            <h2>Step 5: Deploy Gainde Application</h2>
+
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <h3>Review ArgoCD Application Manifest</h3>
+                <p>The provided <code>application.yaml</code> defines how ArgoCD will deploy Gainde. Let's review its contents:</p>
+                
+                <div class="code-block" data-lang="yaml">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="keyword">apiVersion:</span> argoproj.io/v1alpha1
+<span class="keyword">kind:</span> Application
+<span class="keyword">metadata:</span>
+  <span class="keyword">name:</span> gainde
+<span class="keyword">spec:</span>
+  <span class="keyword">project:</span> default
+  <span class="keyword">source:</span>
+    <span class="keyword">repoURL:</span> https://gitlab.com/kajande/gainde2k/odoo.git
+    <span class="keyword">targetRevision:</span> HEAD
+    <span class="keyword">path:</span> chart
+    <span class="keyword">helm:</span>
+      <span class="keyword">valueFiles:</span>
+        - values.yaml
+  <span class="keyword">destination:</span>
+    <span class="keyword">server:</span> https://kubernetes.default.svc
+    <span class="keyword">namespace:</span> gainde
+  <span class="keyword">syncPolicy:</span>
+    <span class="keyword">automated:</span>
+      <span class="keyword">prune:</span> <span class="string">true</span>       <span class="comment"># Remove resources not in Git</span>
+      <span class="keyword">selfHeal:</span> <span class="string">true</span>    <span class="comment"># Automatically fix drift</span>
+    <span class="keyword">syncOptions:</span>
+      - CreateNamespace=<span class="string">true</span></code></pre>
+                </div>
+
+                <div class="info-box">
+                    <h4>🔄 What This Configuration Does</h4>
+                    <ul>
+                        <li><strong>Repository:</strong> Points to the GitLab repository (you have credentials for this)</li>
+                        <li><strong>Target:</strong> Uses the <code>chart</code> directory and <code>values.yaml</code></li>
+                        <li><strong>Destination:</strong> Deploys to the <code>gainde</code> namespace</li>
+                        <li><strong>Automated Sync:</strong> ArgoCD will automatically deploy changes</li>
+                        <li><strong>Self-Heal:</strong> Automatically corrects manual changes</li>
+                        <li><strong>Prune:</strong> Removes resources deleted from Git</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <h3>Apply ArgoCD Application</h3>
+                <p>Deploy the Gainde application by applying the provided configuration file.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Make sure you're in the directory containing application.yaml</span>
+kubectl apply -f application.yaml</code></pre>
+                </div>
+
+                <div class="info-box success">
+                    <h4>✅ What Happens Next</h4>
+                    <p>ArgoCD will now:</p>
+                    <ol>
+                        <li>Connect to the GitLab repository using the credentials you configured</li>
+                        <li>Clone the repository and read the Helm chart</li>
+                        <li>Deploy all Kubernetes resources to the gainde namespace</li>
+                        <li>Monitor the deployment health and sync status</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <h3>Monitor Deployment Progress</h3>
+                <p>Watch ArgoCD sync and deploy your application in real-time.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Watch ArgoCD application status</span>
+kubectl get application gainde -n argocd -w
+
+<span class="comment"># Check application details</span>
+kubectl describe application gainde -n argocd
+
+<span class="comment"># Watch pod deployment in gainde namespace</span>
+kubectl get pods -n gainde -w</code></pre>
+                </div>
+
+                <div class="info-box">
+                    <h4>⏱️ Deployment Timeline</h4>
+                    <p>The deployment process typically takes 5-10 minutes:</p>
+                    <ul>
+                        <li><strong>0-2 min:</strong> Image pull and init containers</li>
+                        <li><strong>2-5 min:</strong> Database initialization and connection</li>
+                        <li><strong>5-10 min:</strong> Odoo startup and module installation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">04</div>
+                <h3>View in ArgoCD UI</h3>
+                <p>Access the ArgoCD web interface to visualize the deployment.</p>
+                
+                <ol>
+                    <li>Open ArgoCD UI at <code>https://localhost:8080</code></li>
+                    <li>Login with admin credentials (if not already logged in)</li>
+                    <li>Click on the <strong>"gainde"</strong> application card</li>
+                    <li>View the resource tree showing all deployed components</li>
+                    <li>Monitor sync status and health of each resource</li>
+                </ol>
+
+                <div class="info-box success">
+                    <h4>✅ Successful Deployment Indicators</h4>
+                    <p>When deployment is complete, you'll see:</p>
+                    <ul>
+                        <li><strong>Sync Status:</strong> Synced (green checkmark)</li>
+                        <li><strong>Health Status:</strong> Healthy (green heart)</li>
+                        <li><strong>All Resources:</strong> Green status indicators</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 6: Verify Deployment -->
+        <section class="section">
+            <h2>Step 6: Verify and Access Application</h2>
+
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <h3>Check Application Status</h3>
+                <p>Verify all components are running correctly.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check all pods in gainde namespace</span>
+kubectl get pods -n gainde
+
+<span class="comment"># Expected output:</span>
+<span class="comment"># NAME                      READY   STATUS    RESTARTS   AGE</span>
+<span class="comment"># gainde-xxxxxxxxxx-xxxxx   1/1     Running   0          5m</span>
+<span class="comment"># postgres-postgresql-0     1/1     Running   0          10m</span>
+
+<span class="comment"># Check services</span>
+kubectl get svc -n gainde
+
+<span class="comment"># Check persistent volumes</span>
+kubectl get pvc -n gainde
+
+<span class="comment"># View application logs</span>
+kubectl logs -n gainde -l app.kubernetes.io/name=gainde --tail=100 -f</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <h3>Access the Gainde Application</h3>
+                <p>Connect to your Gainde instance using one of the following methods.</p>
+                
+                <h4>Option 1: Port Forwarding (Recommended for Testing)</h4>
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code>kubectl port-forward -n gainde svc/gainde 8069:8069</code></pre>
+                </div>
+                <p>Then access: <code>http://localhost:8069</code></p>
+
+                <h4>Option 2: NodePort Access</h4>
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Get NodePort details</span>
+kubectl get svc gainde -n gainde
+
+<span class="comment"># Access using: http://&lt;node-ip&gt;:30071</span></code></pre>
+                </div>
+
+                <h4>Option 3: LoadBalancer (Production)</h4>
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Get LoadBalancer IP (if service type is LoadBalancer)</span>
+kubectl get svc gainde -n gainde -o jsonpath=<span class="string">'{.status.loadBalancer.ingress[0].ip}'</span>
+
+<span class="comment"># Access using: http://&lt;lb-ip&gt;:8069</span></code></pre>
+                </div>
+
+                <div class="info-box">
+                    <h4>🌐 Default Service Configuration</h4>
+                    <p>By default, Gainde is configured as <strong>NodePort</strong> service on port <strong>30071</strong>. You can access it from any cluster node at port 30071.</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <h3>Test Health Endpoint</h3>
+                <p>Verify the application is responding correctly.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Test health endpoint (use appropriate URL based on your access method)</span>
+curl http://localhost:8069/web/health
+
+<span class="comment"># Expected response: HTTP 200 OK with status information</span></code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">04</div>
+                <h3>Login to Gainde</h3>
+                <p>Access the Odoo/Gainde web interface.</p>
+                
+                <ol>
+                    <li>Open <code>http://localhost:8069</code> (or your configured URL) in your browser</li>
+                    <li>You'll see the Odoo/Gainde login page</li>
+                    <li>Login with the credentials configured in <code>values.yaml</code>:
+                        <ul>
+                            <li><strong>Default Email:</strong> moctar.diallo@kajande.com</li>
+                            <li><strong>Default Password:</strong> admin</li>
+                        </ul>
+                    </li>
+                    <li>After login, you'll see the Gainde dashboard</li>
+                </ol>
+
+                <div class="info-box warning">
+                    <h4>🔐 Security Reminder</h4>
+                    <p>Change the default admin password immediately after first login for security purposes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Reference -->
+        <section class="section">
+            <h2>Quick Reference Commands</h2>
+
+            <div class="step-card">
+                <h3>Essential Commands</h3>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check application status</span>
+kubectl get application gainde -n argocd
+
+<span class="comment"># View all pods</span>
+kubectl get pods -n gainde
+
+<span class="comment"># Check services</span>
+kubectl get svc -n gainde
+
+<span class="comment"># View application logs</span>
+kubectl logs -n gainde -l app.kubernetes.io/name=gainde -f
+
+<span class="comment"># Access application via port-forward</span>
+kubectl port-forward -n gainde svc/gainde 8069:8069
+
+<span class="comment"># Check database</span>
+kubectl exec -n gainde -it postgres-postgresql-0 -- psql -U odoo -d odoo
+
+<span class="comment"># Restart application</span>
+kubectl rollout restart deployment gainde -n gainde
+
+<span class="comment"># Force ArgoCD sync</span>
+kubectl patch application gainde -n argocd --type merge -p <span class="string">'{"operation":{"sync":{}}}'</span></code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Support -->
+        <section class="section">
+            <h2>Getting Support</h2>
+
+            <div class="info-box success">
+                <h4>🎉 Congratulations!</h4>
+                <p>You have successfully deployed Gainde using ArgoCD! Your application is now running with automated GitOps workflows.</p>
+            </div>
+
+            <div class="info-box">
+                <h4>📞 Need Help?</h4>
+                <p>If you encounter issues:</p>
+                <ul>
+                    <li>Contact your system administrator who provided the credentials</li>
+                    <li>Check the ArgoCD documentation at <a href="https://argo-cd.readthedocs.io/" target="_blank">argo-cd.readthedocs.io</a></li>
+                    <li>Review Kubernetes cluster logs for infrastructure problems</li>
+                    <li>Consult the PostgreSQL logs for database-related issues</li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Gainde Installation Guide | Deployed with ArgoCD GitOps</p>
+        <p>Built with ❤️ for seamless Kubernetes deployments</p>
+    </footer>
+
+    <script>
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                button.textContent = 'Copied!';
+                button.style.background = 'rgba(0, 255, 163, 0.2)';
+                button.style.borderColor = 'var(--success)';
+                button.style.color = 'var(--success)';
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                    button.style.background = 'rgba(0, 217, 255, 0.1)';
+                    button.style.borderColor = 'rgba(0, 217, 255, 0.3)';
+                    button.style.color = 'var(--accent)';
+                }, 2000);
+            });
+        }
+
+        // Animate sections on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
