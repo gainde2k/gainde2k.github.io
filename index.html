@@ -24,6 +24,7 @@
             --code-bg: #0d1117;
             --success: #00ffa3;
             --warning: #ffb700;
+            --danger: #ff4444;
         }
 
         body {
@@ -300,6 +301,11 @@
             border-left-color: var(--success);
         }
 
+        .info-box.danger {
+            background: rgba(255, 68, 68, 0.05);
+            border-left-color: var(--danger);
+        }
+
         .info-box h4 {
             margin-bottom: 0.5rem;
             color: var(--accent);
@@ -312,6 +318,10 @@
 
         .info-box.success h4 {
             color: var(--success);
+        }
+
+        .info-box.danger h4 {
+            color: var(--danger);
         }
 
         ul, ol {
@@ -509,17 +519,18 @@
         <!-- Introduction -->
         <section class="section">
             <h2>Overview</h2>
-            <p>This guide walks you through deploying the Gainde application using ArgoCD for GitOps-based continuous deployment. You've been provided with the necessary configuration file and GitLab credentials to complete this installation without needing direct repository access.</p>
+            <p>This guide walks you through deploying the Gainde application using ArgoCD for GitOps-based continuous deployment. All necessary configuration files are embedded directly in this guide, and you've been provided with GitLab credentials by your administrator.</p>
             
             <div class="info-box">
                 <h4>📦 What You Need</h4>
+                <p>Everything you need is provided directly in this guide:</p>
                 <ul>
-                    <li><code>application.yaml</code> - ArgoCD application configuration (provided separately)</li>
-                    <li>GitLab username and password for container registry and repository access (provided by administrator)</li>
+                    <li>✅ <strong>PostgreSQL configuration</strong> - Included in Step 3 (copy directly from the guide)</li>
+                    <li>✅ <strong>ArgoCD application configuration</strong> - Included in Step 5 (copy directly from the guide)</li>
+                    <li>🔑 <strong>GitLab credentials</strong> - Provided by your administrator</li>
                 </ul>
-                <p style="margin-top: 1rem;"><strong>Note:</strong> The PostgreSQL configuration is included directly in this guide - no separate file needed.</p>
+                <p style="margin-top: 1rem;"><strong>Note:</strong> You don't need any separate configuration files. All YAML configurations are embedded in this guide with copy buttons for your convenience.</p>
             </div>
-
             <div class="grid">
                 <div class="feature-card">
                     <div class="feature-icon">🔄</div>
@@ -552,7 +563,6 @@
                 <li><strong>Kubernetes Cluster</strong> (v1.19 or higher) with kubectl configured</li>
                 <li><strong>Helm</strong> (v3 or higher) installed on your local machine</li>
                 <li><strong>kubectl</strong> configured to access your cluster with admin privileges</li>
-                <li><strong>Configuration File</strong>: <code>application.yaml</code></li>
                 <li><strong>GitLab Credentials</strong> provided by your administrator</li>
             </ul>
 
@@ -916,7 +926,7 @@ kubectl describe secret gitlab-registry-secret -n gainde</code></pre>
 
         <!-- Step 5: Deploy with ArgoCD -->
         <section class="section">
-            <h2>Step 5: Deploy Gainde Application</h2>
+            <h2>Step 5: Deploy Gainde Application with ArgoCD</h2>
 
             <div class="step-card">
                 <div class="step-number">01</div>
@@ -964,9 +974,37 @@ kubectl describe secret gitlab-registry-secret -n gainde</code></pre>
 
             <div class="step-card">
                 <div class="step-number">02</div>
-                <h3>Apply ArgoCD Application</h3>
-                <p>Deploy the Gainde application by applying the provided configuration file.</p>
-                
+                <h3>Deploy Application - Choose Your Method</h3>
+                <p>You can deploy the Gainde application using either the ArgoCD UI or the command line.</p>
+
+                <h4>Option A: Using ArgoCD UI (Recommended for Beginners)</h4>
+                <ol>
+                    <li>Open ArgoCD UI at <code>https://localhost:8080</code></li>
+                    <li>Click <strong>+ New App</strong> button at the top</li>
+                    <li>Fill in the application details:
+                        <ul>
+                            <li><strong>Application Name:</strong> gainde</li>
+                            <li><strong>Project:</strong> default</li>
+                            <li><strong>Sync Policy:</strong> Automatic</li>
+                            <li><strong>Repository URL:</strong> <code>https://gitlab.com/kajande/gainde2k/odoo.git</code></li>
+                            <li><strong>Revision:</strong> HEAD</li>
+                            <li><strong>Path:</strong> chart</li>
+                            <li><strong>Cluster URL:</strong> https://kubernetes.default.svc</li>
+                            <li><strong>Namespace:</strong> gainde</li>
+                        </ul>
+                    </li>
+                    <li>Under <strong>Sync Options</strong>, enable:
+                        <ul>
+                            <li>✅ Auto-Create Namespace</li>
+                            <li>✅ Prune Resources</li>
+                            <li>✅ Self Heal</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>Create</strong> at the top</li>
+                    <li>The application will appear in the dashboard and begin syncing automatically</li>
+                </ol>
+
+                <h4>Option B: Using kubectl (Command Line)</h4>
                 <div class="code-block" data-lang="bash">
                     <button class="copy-button" onclick="copyCode(this)">Copy</button>
                     <pre><code><span class="comment"># Make sure you're in the directory containing application.yaml</span>
@@ -1128,7 +1166,7 @@ curl http://localhost:8069/web/health
                     <li>You'll see the Odoo/Gainde login page</li>
                     <li>Login with the credentials configured in <code>values.yaml</code>:
                         <ul>
-                            <li><strong>Default Email:</strong> moctar.diallo@kajande.com</li>
+                            <li><strong>Default Email:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="64090b071005164a000d0508080b240f050e050a00014a070b09">[email&#160;protected]</a></li>
                             <li><strong>Default Password:</strong> admin</li>
                         </ul>
                     </li>
@@ -1138,6 +1176,415 @@ curl http://localhost:8069/web/health
                 <div class="info-box warning">
                     <h4>🔐 Security Reminder</h4>
                     <p>Change the default admin password immediately after first login for security purposes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- GitOps Workflow -->
+        <section class="section">
+            <h2>Understanding GitOps Workflow</h2>
+
+            <div class="info-box">
+                <h4>🔄 How Continuous Deployment Works</h4>
+                <p>With ArgoCD configured, the repository maintainers can push updates to the Git repository, and ArgoCD will automatically deploy those changes to your cluster.</p>
+            </div>
+
+            <h3>What Happens When Updates are Available</h3>
+            <div class="step-card">
+                <ol>
+                    <li><strong>Repository Update:</strong> Maintainers push new changes to the Git repository</li>
+                    <li><strong>ArgoCD Detection:</strong> ArgoCD detects the changes automatically (typically within 3 minutes)</li>
+                    <li><strong>Automatic Sync:</strong> ArgoCD syncs the new version to your cluster</li>
+                    <li><strong>Health Check:</strong> ArgoCD monitors the deployment and reports status</li>
+                    <li><strong>Self-Healing:</strong> If issues occur, ArgoCD can rollback or retry</li>
+                </ol>
+
+                <div class="info-box">
+                    <h4>📊 Monitoring Updates</h4>
+                    <p>Watch for updates in the ArgoCD UI:</p>
+                    <ul>
+                        <li>Yellow "OutOfSync" status means updates are available</li>
+                        <li>Green "Synced" status means your cluster matches the repository</li>
+                        <li>Red status indicates deployment issues</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Manual Sync</h3>
+            <div class="step-card">
+                <p>If you want to trigger a sync manually instead of waiting for automatic sync:</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Trigger manual sync using kubectl</span>
+kubectl patch application gainde -n argocd --type merge -p <span class="string">'{"operation":{"sync":{}}}'</span>
+
+<span class="comment"># Or use ArgoCD UI: click "Sync" button on the application</span></code></pre>
+                </div>
+            </div>
+
+            <h3>Rollback Procedure</h3>
+            <div class="step-card">
+                <p>If an update causes issues, you can rollback to a previous version.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># View sync history</span>
+kubectl get application gainde -n argocd -o yaml | grep -A 10 <span class="string">"status:"</span>
+
+<span class="comment"># In ArgoCD UI:</span>
+<span class="comment"># 1. Click on the application</span>
+<span class="comment"># 2. Click "History and Rollback"</span>
+<span class="comment"># 3. Select a previous version</span>
+<span class="comment"># 4. Click "Rollback"</span></code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section class="section">
+            <h2>Troubleshooting Guide</h2>
+
+            <div class="step-card">
+                <h3>Issue: ArgoCD Cannot Access Repository</h3>
+                <p><strong>Symptoms:</strong> Application shows "ComparisonError" or "Repository not accessible"</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check repository credentials</span>
+kubectl get secret -n argocd -l argocd.argoproj.io/secret-type=repository
+
+<span class="comment"># View repository connection status in UI</span>
+<span class="comment"># Settings → Repositories → Check connection status</span>
+
+<span class="comment"># Re-add repository with correct credentials if needed</span></code></pre>
+                </div>
+
+                <p><strong>Solution:</strong> Verify your GitLab credentials are correct and re-add the repository in ArgoCD settings.</p>
+            </div>
+
+            <div class="step-card">
+                <h3>Issue: Image Pull Errors</h3>
+                <p><strong>Symptoms:</strong> Pod shows "ErrImagePull" or "ImagePullBackOff"</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check pod events</span>
+kubectl describe pod -n gainde -l app.kubernetes.io/name=gainde
+
+<span class="comment"># Verify registry secret exists</span>
+kubectl get secret gitlab-registry-secret -n gainde
+
+<span class="comment"># Check secret details</span>
+kubectl describe secret gitlab-registry-secret -n gainde
+
+<span class="comment"># Recreate secret with correct credentials</span>
+kubectl delete secret gitlab-registry-secret -n gainde
+kubectl create secret docker-registry gitlab-registry-secret \
+  --docker-server=registry.gitlab.com \
+  --docker-username=[USERNAME] \
+  --docker-password=[PASSWORD] \
+  --namespace=gainde
+
+<span class="comment"># Restart deployment</span>
+kubectl rollout restart deployment gainde -n gainde</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>Issue: Pod CrashLoopBackOff</h3>
+                <p><strong>Symptoms:</strong> Gainde pod continuously restarts</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check pod logs</span>
+kubectl logs -n gainde -l app.kubernetes.io/name=gainde --tail=100
+
+<span class="comment"># Check init container logs</span>
+kubectl logs -n gainde &lt;pod-name&gt; -c wait-for-postgres
+kubectl logs -n gainde &lt;pod-name&gt; -c check-database-ready
+
+<span class="comment"># Check pod events</span>
+kubectl describe pod -n gainde &lt;pod-name&gt;</code></pre>
+                </div>
+
+                <p><strong>Common Causes:</strong></p>
+                <ul>
+                    <li>Database connection issues</li>
+                    <li>Missing or incorrect environment variables</li>
+                    <li>Insufficient resources</li>
+                </ul>
+            </div>
+
+            <div class="step-card">
+                <h3>Issue: Database Connection Problems</h3>
+                <p><strong>Symptoms:</strong> Application cannot connect to PostgreSQL</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Test PostgreSQL connectivity</span>
+kubectl exec -n gainde -it postgres-postgresql-0 -- psql -U odoo -d odoo -c <span class="string">"SELECT version();"</span>
+
+<span class="comment"># Check PostgreSQL logs</span>
+kubectl logs -n gainde postgres-postgresql-0 --tail=100
+
+<span class="comment"># Check PostgreSQL service</span>
+kubectl get svc postgres-postgresql -n gainde
+
+<span class="comment"># Verify database exists</span>
+kubectl exec -n gainde -it postgres-postgresql-0 -- psql -U odoo -l</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>Issue: Application Not Accessible</h3>
+                <p><strong>Symptoms:</strong> Cannot access Gainde web interface</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Check service configuration</span>
+kubectl get svc gainde -n gainde
+
+<span class="comment"># Check pod status</span>
+kubectl get pods -n gainde -l app.kubernetes.io/name=gainde
+
+<span class="comment"># Test service connectivity</span>
+kubectl run test-curl --image=curlimages/curl -i --rm --restart=Never -- \
+  curl http://gainde.gainde.svc.cluster.local:8069/web/health
+
+<span class="comment"># Check endpoints</span>
+kubectl get endpoints gainde -n gainde</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <h3>Issue: ArgoCD Sync Failing</h3>
+                <p><strong>Symptoms:</strong> Application shows "SyncFailed" status</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># View application status and errors</span>
+kubectl describe application gainde -n argocd
+
+<span class="comment"># Check ArgoCD application controller logs</span>
+kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller --tail=100
+
+<span class="comment"># Force refresh and sync</span>
+kubectl patch application gainde -n argocd --type merge -p <span class="string">'{"operation":{"sync":{"prune":true}}}'</span></code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Best Practices -->
+        <section class="section">
+            <h2>Best Practices</h2>
+
+            <div class="grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h4>Credential Security</h4>
+                    <p>Keep your GitLab credentials secure. Don't share them or store them in plain text. Consider using a password manager.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h4>Monitor Regularly</h4>
+                    <p>Check ArgoCD UI regularly to monitor deployment health and catch issues early.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h4>Regular Backups</h4>
+                    <p>Schedule regular PostgreSQL database backups using Odoo's database manager and test restore procedures.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h4>Check Logs</h4>
+                    <p>Regularly review application logs for errors or performance issues.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h4>Update Awareness</h4>
+                    <p>Stay informed about updates. Watch the ArgoCD dashboard for new versions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🆘</div>
+                    <h4>Have a Recovery Plan</h4>
+                    <p>Document your setup and keep backup configurations for disaster recovery.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Complete Redeployment -->
+        <section class="section">
+            <h2>Complete Redeployment (When Facing Major Issues)</h2>
+
+            <div class="info-box danger">
+                <h4>⚠️ When to Use Complete Redeployment</h4>
+                <p>Use this procedure only when facing major issues that cannot be resolved through normal troubleshooting, such as:</p>
+                <ul>
+                    <li>Persistent application crashes or corrupted state</li>
+                    <li>Database schema corruption</li>
+                    <li>Irrecoverable configuration issues</li>
+                    <li>Need for a clean slate deployment</li>
+                </ul>
+                <p><strong>WARNING:</strong> This will delete all resources in the gainde namespace except the database backup.</p>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <h3>Backup Database from Odoo UI</h3>
+                <p>Before removing any resources, create a backup of your database using Odoo's built-in database manager.</p>
+                
+                <ol>
+                    <li>Access Odoo Database Manager:
+                        <ul>
+                            <li>Navigate to <code>http://localhost:8069/web/database/manager</code></li>
+                            <li>Or click on <strong>Manage Databases</strong> from the login page</li>
+                        </ul>
+                    </li>
+                    <li>Enter the <strong>Master Password</strong> (default: <code>admin</code>)</li>
+                    <li>Select your database (usually named <code>odoo</code>)</li>
+                    <li>Click <strong>Backup</strong> button</li>
+                    <li>Choose backup format:
+                        <ul>
+                            <li><strong>zip (includes filestore):</strong> Recommended - contains database + attachments</li>
+                            <li><strong>dump (database only):</strong> Only database, no file attachments</li>
+                        </ul>
+                    </li>
+                    <li>Click <strong>Backup</strong> and save the file to your local machine</li>
+                    <li>Verify the backup file was downloaded successfully</li>
+                </ol>
+
+                <div class="info-box warning">
+                    <h4>💾 Important: Verify Your Backup</h4>
+                    <p>Make sure the backup file is downloaded and stored safely before proceeding with deletion. The backup file should be several megabytes in size (depending on your data).</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <h3>Delete ArgoCD Application</h3>
+                <p>Remove the ArgoCD application which will clean up all Kubernetes resources.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Delete the ArgoCD application</span>
+kubectl delete application gainde -n argocd
+
+<span class="comment"># Wait for resources to be removed</span>
+kubectl wait --for=delete pod -l app.kubernetes.io/name=gainde -n gainde --timeout=120s</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <h3>Remove PostgreSQL</h3>
+                <p>Uninstall the PostgreSQL Helm release.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Uninstall PostgreSQL</span>
+helm uninstall postgres -n gainde
+
+<span class="comment"># Wait for PostgreSQL pod to be removed</span>
+kubectl wait --for=delete pod postgres-postgresql-0 -n gainde --timeout=120s</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">04</div>
+                <h3>Delete All Resources in Namespace</h3>
+                <p>Remove all remaining resources including persistent volume claims and secrets.</p>
+                
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># Delete all PVCs (this will delete the database data)</span>
+kubectl delete pvc --all -n gainde
+
+<span class="comment"># Delete all secrets</span>
+kubectl delete secret --all -n gainde
+
+<span class="comment"># Delete the namespace entirely</span>
+kubectl delete namespace gainde
+
+<span class="comment"># Verify namespace is deleted</span>
+kubectl get namespace gainde</code></pre>
+                </div>
+
+                <div class="info-box danger">
+                    <h4>⚠️ Point of No Return</h4>
+                    <p>After this step, all data in the namespace will be permanently deleted. Make sure you have your database backup before proceeding!</p>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">05</div>
+                <h3>Redeploy from Scratch</h3>
+                <p>Now follow the installation steps again to deploy a fresh instance.</p>
+                
+                <ol>
+                    <li><strong>Create gainde namespace:</strong>
+                        <div class="code-block" data-lang="bash">
+                            <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                            <pre><code>kubectl create namespace gainde</code></pre>
+                        </div>
+                    </li>
+                    <li><strong>Reinstall PostgreSQL:</strong> Follow Step 3 from the beginning</li>
+                    <li><strong>Recreate registllow Step 5 from the beginning</li>
+                </ol>
+
+                <div class="info-box">
+                    <h4>📋 Quick Redeployment Commands</h4>
+                    <p>Here are all the commands in sequence for quick redeployment:</p>
+                </div>
+
+                <div class="code-block" data-lang="bash">
+                    <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                    <pre><code><span class="comment"># 1. Create namespace</span>
+kubectl create namespace gainde
+
+<span class="comment"># 2. Install PostgreSQL</span>
+helm install postgres bitnami/postgresql \
+  --namespace gainde \
+  --values postgres-values.yaml
+
+<span class="comment"># 3. Wait for PostgreSQL</span>
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=postgresql -n gainde --timeout=300s
+
+<span class="comment"># 4. Create registry secret (replace [USERNAME] and [PASSWORD])</span>
+kubectl create secret docker-registry gitlab-registry-secret \
+  --docker-server=registry.gitlab.com \
+  --docker-username=[USERNAME] \
+  --docker-password=[PASSWORD] \
+  --namespace=gainde
+
+<span class="comment"># 5. Deploy Gainde application</span>
+kubectl apply -f application.yaml
+
+<span class="comment"># 6. Watch deployment</span>
+kubectl get pods -n gainde -w</code></pre>
+                </div>
+            </div>
+
+            <div class="step-card">
+                <div class="step-number">06</div>
+                <h3>Restore Database from Backup</h3>
+                <p>Once the new deployment is ready, restore your data from the backup.</p>
+                
+                <ol>
+                    <li>Wait for Gainde to be fully deployed and accessible</li>
+                    <li>Access Odoo Database Manager at <code>http://localhost:8069/web/database/manager</code></li>
+                    <li>Enter the Master Password (default: <code>admin</code>)</li>
+                    <li>Click <strong>Restore Database</strong></li>
+                    <li>Upload your backup file (the .zip or .dump file you saved earlier)</li>
+                    <li>Enter a database name (or use the original name: <code>odoo</code>)</li>
+                    <li>Click <strong>Continue</strong> to restore</li>
+                    <li>Wait for the restore process to complete</li>
+                    <li>Login to verify all your data is restored correctly</li>
+                </ol>
+
+                <div class="info-box success">
+                    <h4>✅ Redeployment Complete</h4>
+                    <p>Your Gainde instance has been completely redeployed with a fresh installation, and your data has been restored from backup.</p>
                 </div>
             </div>
         </section>
