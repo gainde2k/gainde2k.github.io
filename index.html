@@ -970,6 +970,76 @@ kubectl describe secret gitlab-registry-secret -n gainde</code></pre>
                         <li><strong>Prune:</strong> Removes resources deleted from Git</li>
                     </ul>
                 </div>
+
+                <div class="info-box warning">
+                    <h4>🎨 Customizing Values Without Repository Access</h4>
+                    <p>You can override the default values in <code>values.yaml</code> directly from <code>application.yaml</code> without needing to modify the Git repository. This allows you to customize your deployment with your own credentials and settings.</p>
+                    
+                    <h4 style="margin-top: 1.5rem;">Method 1: Using Helm Parameters (Recommended)</h4>
+                    <p>Add a <code>parameters</code> section under <code>helm:</code> to override individual values:</p>
+                    
+                    <div class="code-block" data-lang="yaml">
+                        <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                        <pre><code><span class="keyword">spec:</span>
+  <span class="keyword">source:</span>
+    <span class="keyword">helm:</span>
+      <span class="keyword">valueFiles:</span>
+        - values.yaml
+      <span class="keyword">parameters:</span>
+        - <span class="keyword">name:</span> odoo.adminUser
+          <span class="keyword">value:</span> <span class="string">"admin@example.com"</span>
+        - <span class="keyword">name:</span> odoo.adminPassword
+          <span class="keyword">value:</span> <span class="string">"mySecurePassword"</span>
+        - <span class="keyword">name:</span> database.user
+          <span class="keyword">value:</span> <span class="string">"odoo"</span>
+        - <span class="keyword">name:</span> database.password
+          <span class="keyword">value:</span> <span class="string">"odoo"</span>
+        - <span class="keyword">name:</span> database.name
+          <span class="keyword">value:</span> <span class="string">"odoo"</span>
+        - <span class="keyword">name:</span> service.nodePort
+          <span class="keyword">value:</span> <span class="string">"30071"</span></code></pre>
+                    </div>
+
+                    <h4 style="margin-top: 1.5rem;">Method 2: Using Helm Values Block</h4>
+                    <p>Add a <code>values:</code> section under <code>helm:</code> with YAML configuration:</p>
+                    
+                    <div class="code-block" data-lang="yaml">
+                        <button class="copy-button" onclick="copyCode(this)">Copy</button>
+                        <pre><code><span class="keyword">spec:</span>
+  <span class="keyword">source:</span>
+    <span class="keyword">helm:</span>
+      <span class="keyword">valueFiles:</span>
+        - values.yaml
+      <span class="keyword">values:</span> |
+        <span class="keyword">odoo:</span>
+          <span class="keyword">adminUser:</span> <span class="string">"admin@example.com"</span>
+          <span class="keyword">adminPassword:</span> <span class="string">"mySecurePassword"</span>
+        
+        <span class="keyword">database:</span>
+          <span class="keyword">host:</span> <span class="string">"postgres-postgresql"</span>
+          <span class="keyword">user:</span> <span class="string">"odoo"</span>
+          <span class="keyword">password:</span> <span class="string">"odoo"</span>
+          <span class="keyword">name:</span> <span class="string">"odoo"</span>
+        
+        <span class="keyword">service:</span>
+          <span class="keyword">type:</span> NodePort
+          <span class="keyword">nodePort:</span> 30071</code></pre>
+                    </div>
+
+                    <p style="margin-top: 1rem;"><strong>💡 Important:</strong> Make sure the values you set here match the credentials you configured in <code>postgres-values.yaml</code> (Step 3). For example, if you changed the PostgreSQL username to "myuser", update the <code>database.user</code> parameter to match.</p>
+                    
+                    <p><strong>Common Parameters to Customize:</strong></p>
+                    <ul>
+                        <li><code>odoo.adminUser</code> - Odoo admin email address</li>
+                        <li><code>odoo.adminPassword</code> - Odoo admin password</li>
+                        <li><code>database.user</code> - PostgreSQL username (must match postgres-values.yaml)</li>
+                        <li><code>database.password</code> - PostgreSQL password (must match postgres-values.yaml)</li>
+                        <li><code>database.name</code> - PostgreSQL database name (must match postgres-values.yaml)</li>
+                        <li><code>database.host</code> - PostgreSQL service name (default: postgres-postgresql)</li>
+                        <li><code>service.nodePort</code> - NodePort for external access (30000-32767)</li>
+                        <li><code>image.tag</code> - Gainde container image tag</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="step-card">
